@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ফাইল প্রটেক্টর ও ডিক্রিপ্টর টুল</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            padding: 30px 15px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #38bdf8;
+        }
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: #334155;
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: 0.3s;
+        }
+        .tab-btn.active {
+            background: #0284c7;
+        }
+        .panel {
+            display: none;
+        }
+        .panel.active {
+            display: block;
+        }
+        .upload-zone {
+            border: 2px dashed #475569;
+            padding: 35px 20px;
+            text-align: center;
+            border-radius: 8px;
+            background: #111827;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-bottom: 20px;
+        }
+        .upload-zone:hover {
+            border-color: #38bdf8;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-encrypt { background: #10b981; color: white; }
+        .btn-encrypt:hover { background: #059669; }
+        .btn-decrypt { background: #ef4444; color: white; }
+        .btn-decrypt:hover { background: #dc2626; }
+        
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #0f172a;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            display: none;
+        }
+        .result-box h4 {
+            color: #fbbf24;
+            margin-bottom: 10px;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            max-height: 200px;
+            overflow-y: auto;
+            color: #38bdf8;
+        }
+        .file-info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>ফাইল সিকিউরিটি ও এক্সট্র্যাক্টর হাব</h2>
+
+    <!-- ট্যাব বাটনসমূহ -->
+    <div class="tab-buttons">
+        <button class="tab-btn active" onclick="switchTab('protect-panel', this)">🔒 কোড প্রটেক্ট করুন</button>
+        <button class="tab-btn" onclick="switchTab('hack-panel', this)">🔓 ফাইল হ্যাক / পাসওয়ার্ড ভিউ</button>
+    </div>
+
+    <!-- ১. কোড প্রটেকশন প্যানেল -->
+    <div id="protect-panel" class="panel active">
+        <div class="upload-zone" onclick="document.getElementById('encryptFile').click()">
+            <p>আপনার HTML/JS ফাইল এখানে ড্রপ করুন বা ক্লিক করে আপলোড করুন</p>
+            <div class="file-info" id="encryptFileInfo">কোনো ফাইল সিলেক্ট করা হয়নি</div>
+            <input type="file" id="encryptFile" accept=".html,.js,.txt" onchange="updateFileInfo('encryptFile', 'encryptFileInfo')">
+        </div>
+        <button class="btn btn-encrypt" onclick="protectFile()">প্রটেক্টেড ফাইল তৈরি করুন</button>
+        
+        <div class="result-box" id="encryptResult">
+            <h4>✓ কোড সফলভাবে প্রটেক্ট করা হয়েছে!</h4>
+            <p style="margin-bottom: 10px; font-size:14px;">নিচের ফাইলটি ডাউনলোড করুন। কেউ এটির সোর্স কোড সহজে দেখতে পারবে না।</p>
+            <button class="btn" style="background:#0284c7; color:white;" id="downloadEncryptedBtn">ডাউনলোড প্রটেক্টেড ফাইল</button>
+        </div>
+    </div>
+
+    <!-- ২. হ্যাক বা ডিক্রিপ্ট প্যানেল -->
+    <div id="hack-panel" class="panel">
+        <div class="upload-zone" onclick="document.getElementById('decryptFile').click()" style="border-color: #ef4444;">
+            <p>লক করা বা প্রটেক্টেড ফাইলটি এখানে আপলোড করুন</p>
+            <div class="file-info" id="decryptFileInfo">কোনো ফাইল সিলেক্ট করা হয়নি</div>
+            <input type="file" id="decryptFile" accept=".html,.js,.txt" onchange="updateFileInfo('decryptFile', 'decryptFileInfo')">
+        </div>
+        <button class="btn btn-decrypt" onclick="hackFile()">ফাইল হ্যাক ও পাসওয়ার্ড বের করুন</button>
+
+        <div class="result-box" id="decryptResult">
+            <h4>🔓 এক্সট্র্যাক্ট করা মূল কোড ও পাসওয়ার্ড:</h4>
+            <pre id="extractedCode"></pre>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ট্যাব পরিবর্তন করার ফাংশন
+    function switchTab(panelId, button) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        
+        document.getElementById(panelId).classList.add('active');
+        button.classList.add('active');
+    }
+
+    // ফাইল সিলেক্ট করলে নাম দেখানোর ফাংশন
+    function updateFileInfo(inputId, infoId) {
+        const fileInput = document.getElementById(inputId);
+        const fileInfo = document.getElementById(infoId);
+        if (fileInput.files.length > 0) {
+            fileInfo.innerText = "সিলেক্টেড ফাইল: " + fileInput.files[0].name;
+            fileInfo.style.color = "#38bdf8";
+        }
+    }
+
+    // ১. কোড প্রটেক্ট বা লক করার লজিক
+    function protectFile() {
+        const fileInput = document.getElementById('encryptFile');
+        if (fileInput.files.length === 0) {
+            alert("অনুগ্রহ করে প্রথমে একটি ফাইল আপলোড করুন!");
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const originalCode = e.target.result;
+            
+            // কোড এনক্রিপ্ট বা অবফাসকেট করার প্রসেস (Base64 + Dynamic Injection)
+            const encodedCode = btoa(unescape(encodeURIComponent(originalCode)));
+            
+            // একটি প্রটেক্টেড আর্কিটেকচার তৈরি করা হচ্ছে যাতে সাধারণ ইউজার সোর্স কোড না দেখে
+            const protectedStructure = `<!-- Protected by Anti-Hack System -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Protected File</title>
+    <script>
+        // Right Click, View Source এবং Developer Tools ব্লক করার বেসিক স্ক্রিপ্ট
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) {
+                return false;
+            }
+        };
+    <\/script>
+</head>
+<body>
+    <script>
+        // এনক্রিপ্টেড ডাটা রান করার প্রসেস
+        (function(){
+            var _0xdata = "${encodedCode}";
+            var _0xdecoded = decodeURIComponent(escape(atob(_0xdata)));
+            document.open();
+            document.write(_0xdecoded);
+            document.close();
+        })();
+    <\/script>
+</body>
+</html>`;
+
+            // ডাউনলোড লিংক রেডি করা
+            const blob = new Blob([protectedStructure], { type: 'text/html' });
+            const downloadUrl = URL.createObjectURL(blob);
+            const downloadBtn = document.getElementById('downloadEncryptedBtn');
+            
+            downloadBtn.onclick = function() {
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = "protected_" + file.name;
+                a.click();
+            };
+
+            document.getElementById('encryptResult').style.display = 'block';
+        };
+
+        reader.readAsText(file);
+    }
+
+    // ২. ফাইল হ্যাক / ডিক্রিপ্ট করে পাসওয়ার্ড ও কোড বের করার লজিক
+    function hackFile() {
+        const fileInput = document.getElementById('decryptFile');
+        if (fileInput.files.length === 0) {
+            alert("অনুগ্রহ করে লক করা ফাইলটি আপলোড করুন!");
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const targetCode = e.target.result;
+            
+            // রেগুলার এক্সপ্রেশন দিয়ে ফাইলের ভেতরের Encrypted Base64 কোডটি খুঁজে বের করা
+            const match = targetCode.match(/var _0xdata = "([^"]+)"/);
+            
+            if (match && match[1]) {
+                try {
+                    // কোডটি ডিক্রিপ্ট বা হ্যাক করা
+                    const decryptedCode = decodeURIComponent(escape(atob(match[1])));
+                    
+                    // স্ক্রিনে কোড এবং পাসওয়ার্ড (যদি কোডের ভেতর থাকে) প্রদর্শন করা
+                    document.getElementById('extractedCode').innerText = decryptedCode;
+                    document.getElementById('decryptResult').style.display = 'block';
+                } catch (err) {
+                    alert("ফাইলটি ডিক্রিপ্ট করতে সমস্যা হচ্ছে। ফাইলটি সঠিক নিয়মে প্রটেক্ট করা নয়।");
+                }
+            } else {
+                // ফাইলটি যদি নরমাল হয়, তবে সরাসরি কোড রিড করে দেখানো
+                document.getElementById('extractedCode').innerText = targetCode;
+                document.getElementById('decryptResult').style.display = 'block';
+            }
+        };
+
+        reader.readAsText(file);
+    }
+</script>
+
+</body>
+</html>
